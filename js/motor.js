@@ -1,5 +1,5 @@
 /*
- * Canario Digital - Motor de alertas y lógica del PLC
+ * SIM (Sistema Integrado de Monitoreo) - Motor de alertas y lógica del PLC
  * Valida, compara con los límites, decide el nivel de cada zona,
  * calcula las acciones del PLC y gestiona los eventos y alertas.
  */
@@ -233,12 +233,7 @@
       }
       ez.nivel = nivel;
 
-      // En evacuación, las personas van saliendo de la zona.
-      if (nivel === 'evacuacion') {
-        estado.cuadrillas
-          .filter((c) => c.zona === z.id && c.personasActuales > 0)
-          .forEach((c) => { c.personasActuales -= 1; });
-      }
+      // La salida de las personas en Evacuación la maneja js/personal.js.
 
       historial.push({ t: ahora, z: z.id, v: ez.lecturas, n: nivel });
     });

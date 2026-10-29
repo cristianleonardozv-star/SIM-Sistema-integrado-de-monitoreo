@@ -1,5 +1,5 @@
 /*
- * Canario Digital - Avisos: sonido, notificaciones del navegador y mensajes en pantalla.
+ * SIM (Sistema Integrado de Monitoreo) - Avisos: sonido, notificaciones del navegador y mensajes en pantalla.
  *
  * Sonidos por nivel (Web Audio API, sin archivos de audio):
  *  - Precaución: campanilla suave, se repite cada 15 s mientras haya una zona en amarillo.
@@ -13,6 +13,7 @@
 (function () {
   const C = window.CANARIO;
   const K_SILENCIO = 'canario.silencio';
+  const K_ACEPTADO = 'sim.sonidoAceptado'; // ya activó el sonido una vez: no volver a mostrar la barra
   const REPETIR_MS = { precaucion: 15000, falla: 15000, peligro: 5000, evacuacion: 5000 };
   let ctx = null;
   let salida = null;
@@ -21,6 +22,12 @@
 
   function leerSilencio() {
     try { return localStorage.getItem(K_SILENCIO) === '1'; } catch (e) { return false; }
+  }
+  function aceptado() {
+    try { return localStorage.getItem(K_ACEPTADO) === '1'; } catch (e) { return false; }
+  }
+  function guardarAceptado() {
+    try { localStorage.setItem(K_ACEPTADO, '1'); } catch (e) { /* nada */ }
   }
   function guardarSilencio(v) {
     try { localStorage.setItem(K_SILENCIO, v ? '1' : '0'); } catch (e) { /* nada */ }
@@ -172,6 +179,7 @@
   async function activarTodo() {
     silenciado = false;
     guardarSilencio(false);
+    guardarAceptado();
     const listo = desbloquear();
     // Sonido de prueba para que se escuche que funciona.
     if (listo) { try { await listo; } catch (e) { /* nada */ } }
@@ -187,7 +195,9 @@
 
   function actualizarInterfaz() {
     const barra = barraSonido();
-    barra.hidden = silenciado || audioListo();
+    // Solo se muestra si nunca se ha activado el sonido. Después, el sonido se
+    // reactiva solo con el primer toque o tecla en cada página.
+    barra.hidden = silenciado || audioListo() || aceptado();
     const b = document.getElementById('btn-avisos');
     if (b) {
       b.setAttribute('aria-pressed', silenciado ? 'true' : 'false');
@@ -214,6 +224,8 @@
       };
       document.addEventListener('pointerdown', alPrimerGesto);
       document.addEventListener('keydown', alPrimerGesto);
+      // Si ya lo aceptó antes, se intenta activar de una vez (algunos navegadores lo permiten).
+      if (aceptado() && !silenciado) desbloquear();
       actualizarInterfaz();
     },
     emitir(a) {

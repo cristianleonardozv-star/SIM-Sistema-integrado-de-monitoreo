@@ -1,5 +1,5 @@
 /*
- * Canario Digital - Editor de la mina (editor.html)
+ * SIM (Sistema Integrado de Monitoreo) - Editor de la mina (editor.html)
  * Dibuja tramos arrastrando, mueve extremos y tramos, ubica cuadrillas,
  * edita propiedades y guarda el diseño en el navegador.
  */
@@ -413,7 +413,7 @@
     C.aplicarMina(mina);
     cambios = false;
     const est = document.getElementById('estado-guardado');
-    est.innerHTML = 'Diseño guardado. <a href="index.html">Ir a la sala de control</a>';
+    est.innerHTML = 'Diseño guardado. <a href="ingeniero.html">Ir al monitoreo</a>';
     est.classList.remove('pendiente');
   });
 

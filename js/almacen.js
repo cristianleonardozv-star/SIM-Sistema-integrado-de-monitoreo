@@ -1,5 +1,5 @@
 /*
- * Canario Digital - Almacenamiento en el navegador (localStorage)
+ * SIM (Sistema Integrado de Monitoreo) - Almacenamiento en el navegador (localStorage)
  * Reemplaza la base de datos en el prototipo.
  */
 (function () {

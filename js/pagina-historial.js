@@ -1,5 +1,5 @@
 /*
- * Canario Digital - Página de historial (historial.html)
+ * SIM (Sistema Integrado de Monitoreo) - Página de historial (historial.html)
  * Gráfica con franjas de nivel, tabla de eventos y exportación a CSV.
  */
 (function () {
@@ -179,7 +179,7 @@
       e.accion || '', e.nota || '', e.escalada ? 'Sí' : 'No',
       e.timeline.map((p) => `${C.hora(p.t)} ${p.texto}`).join(' | ')
     ]));
-    descargar('eventos-canario-digital.csv', filas);
+    descargar('eventos-sim.csv', filas);
   }
 
   function dibujar(estado, historial) {

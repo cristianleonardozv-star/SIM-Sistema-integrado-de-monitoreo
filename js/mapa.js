@@ -1,5 +1,5 @@
 /*
- * Canario Digital - Dibujo del corte de la mina a partir del diseño.
+ * SIM (Sistema Integrado de Monitoreo) - Dibujo del corte de la mina a partir del diseño.
  * Lo usan la sala de control (index.html) y el editor (editor.html).
  */
 (function () {
@@ -48,10 +48,24 @@
       p.push(`<rect x="0" y="60" width="${ANCHO}" height="${ALTO - 60}" fill="url(#rejilla)"/>`);
     }
     p.push('<path d="M0 60h900" stroke="#575C61" stroke-width="1.5"/>');
-    p.push('<text x="16" y="36" font-size="13" fill="#575C61">Superficie</text>');
+    p.push('<text x="884" y="36" font-size="13" fill="#575C61" text-anchor="end">Superficie</text>');
     p.push('<rect x="120" y="18" width="128" height="30" rx="3" fill="#23272B"/>');
     p.push('<text x="184" y="38" font-size="12" fill="#F4F4F1" text-anchor="middle">Sala de control</text>');
     p.push('<path d="M184 48V60" stroke="#23272B" stroke-width="1.5" stroke-dasharray="5 5"/>');
+
+    // Castillete y vagoneta en la entrada de la bocamina.
+    const boca = mina.tramos.find((t) => t.tipo === 'bocamina' && Math.min(t.y1, t.y2) <= 64);
+    if (boca) {
+      const bx = boca.y1 <= boca.y2 ? boca.x1 : boca.x2;
+      p.push(`<g class="castillete" stroke="#575C61" stroke-width="2" fill="none" aria-hidden="true">
+        <path d="M${bx - 16} 60 L${bx - 4} 20 M${bx + 16} 60 L${bx + 4} 20 M${bx - 12} 46 H${bx + 12} M${bx - 8} 33 H${bx + 8}"/>
+        <circle cx="${bx}" cy="17" r="6"/><path d="M${bx} 17 L${bx + 26} 50"/>
+      </g>`);
+      const vx = 262;
+      if (bx < 236 || bx > 320) {
+        p.push(`<g aria-hidden="true"><path d="M${vx} 44 h26 l-3 9 h-20 z" fill="#575C61"/><circle cx="${vx + 7}" cy="56" r="2.6" fill="#23272B"/><circle cx="${vx + 19}" cy="56" r="2.6" fill="#23272B"/><path d="M${vx + 4} 44 l3 -4 h12 l3 4" fill="#23272B"/></g>`);
+      }
+    }
 
     // Tramos (cada uno es una zona).
     mina.tramos.forEach((t) => {
@@ -70,10 +84,9 @@
       const visibles = Math.max(1, Math.min(n, Math.floor(largoPx / 12)));
       for (let i = 0; i < visibles; i++) {
         const q = punto(t, (i + 0.5) / visibles);
-        p.push(`<rect data-zona="${e(t.id)}" x="${f1(q.x - 5)}" y="${f1(q.y - 5)}" width="10" height="10" fill="#F4F4F1" stroke="#23272B"/>`);
+        const real = Math.min(n - 1, Math.floor(((i + 0.5) / visibles) * n));
+        p.push(`<rect data-zona="${e(t.id)}" data-est="${i}" x="${f1(q.x - 5)}" y="${f1(q.y - 5)}" width="10" height="10" fill="#F4F4F1" stroke="#23272B"><title>Estación ${C.codigoEstacion ? C.codigoEstacion(t.id, real) : ''}</title></rect>`);
       }
-      const ult = punto(t, (visibles - 0.5) / visibles);
-      p.push(`<g id="falla-${e(t.id)}" class="marca-falla" style="display:none"><rect x="${f1(ult.x - 10)}" y="${f1(ult.y - 10)}" width="20" height="20" fill="#4B4FB8"/><path d="M${f1(ult.x - 4)} ${f1(ult.y - 4)}l8 8M${f1(ult.x + 4)} ${f1(ult.y - 4)}l-8 8" stroke="#FFFFFF" stroke-width="2"/></g>`);
     });
     p.push('</g>');
 
@@ -99,6 +112,9 @@
         <title>${e(c.nombre)}</title></g>`);
     });
 
+    // Capa donde se dibujan los mineros que están dentro de la mina.
+    if (!op.editor) p.push('<g id="capa-mineros"></g>');
+
     // Asas para mover los extremos del tramo seleccionado (solo en el editor).
     if (op.editor && op.seleccion && op.seleccion.tipo === 'tramo') {
       const t = mina.tramos.find((x) => x.id === op.seleccion.id);
@@ -119,9 +135,99 @@
       <rect x="16" y="466" width="10" height="10" fill="#F4F4F1" stroke="#23272B" stroke-width="1.5"/><text x="32" y="475">Estación fija, cada 30 m</text>
       <circle cx="208" cy="471" r="7" fill="#F4F4F1" stroke="#23272B" stroke-width="1.5"/><text x="222" y="475">Cuadrilla con detector</text>
       <path d="M370 471h28" stroke="#23272B" stroke-width="1.5" stroke-dasharray="5 5"/><text x="406" y="475">Fibra óptica a superficie</text>
+      ${op.editor ? '' : `${figura(560, 474, '')}<text x="574" y="475">Minero (ubicado por la estación más cercana)</text>`}
     </g>`);
     return p.join('');
   }
 
-  C.mapa = { ANCHO, ALTO, punto, normalArriba, contenido };
+  // Muñequito de minero con casco. (x, y) = pies.
+  function figura(x, y, clase, titulo) {
+    const t = `translate(${f1(x)} ${f1(y)})`;
+    const cuerpo = 'M0 -8 V-1 M0 -6 L-4 -3 M0 -6 L4 -3 M0 -1 L-3 4 M0 -1 L3 4';
+    return `<g class="minero ${clase}" transform="${t}">${titulo ? `<title>${C.esc(titulo)}</title>` : ''}
+      <path d="${cuerpo}" stroke="#FFFFFF" stroke-width="4.2" stroke-linecap="round" fill="none"/>
+      <circle cx="0" cy="-11" r="3.6" fill="#FFFFFF"/>
+      <path class="cuerpo" d="${cuerpo}" stroke="#23272B" stroke-width="1.9" stroke-linecap="round" fill="none"/>
+      <circle cx="0" cy="-11" r="2.6" fill="#E8B48C"/>
+      <path d="M-3.6 -11.5 a3.6 3.6 0 0 1 7.2 0 z" fill="#F2C230" stroke="#23272B" stroke-width="0.8"/>
+    </g>`;
+  }
+
+  // Dibuja los mineros que están dentro, sobre su tramo.
+  function dibujarMineros(svg, estado) {
+    const capa = svg.querySelector('#capa-mineros');
+    if (!capa || !C.personal) return;
+    const html = C.personal.dentro().map((m, i) => {
+      const t = C.mina.tramos.find((x) => x.id === m.zona);
+      if (!t) return '';
+      const q = punto(t, m.pos);
+      const n = normalArriba(t);
+      const desvio = ((i % 3) - 1) * 4;
+      const ez = estado.zonas[m.zona];
+      const clase = m.evacuando ? 'evacuando' : (ez && C.rango(ez.nivel) >= 3 ? 'en-peligro' : '');
+      const est = C.personal.estacionCercana(m);
+      return figura(q.x + n.nx * desvio, q.y + 6 + n.ny * desvio, clase, `${m.nombre} (${m.codigo}), cerca de la estación ${est}${m.evacuando ? ', evacuando' : ''}`);
+    }).join('');
+    capa.innerHTML = html;
+  }
+
+  // Marca la estación que detecta el problema en cada zona con alerta: titila.
+  function marcarFocos(svg, estado) {
+    svg.querySelectorAll('.estaciones rect.foco').forEach((r) => { r.setAttribute('class', ''); });
+    C.zonas.forEach((z) => {
+      const ez = estado.zonas[z.id];
+      if (!ez || ez.nivel === 'normal') return;
+      const foco = C.simulador.focoDe(estado, z.id);
+      const rects = svg.querySelectorAll(`.estaciones rect[data-zona="${CSS.escape(z.id)}"]`);
+      if (!rects.length) return;
+      const vi = Math.min(rects.length - 1, Math.floor(((foco + 0.5) / z.estaciones) * rects.length));
+      rects[vi].setAttribute('class', `foco foco-${ez.nivel}`);
+    });
+  }
+
+  // Colorea el mapa según el estado: zonas, estaciones, etiquetas, cuadrillas y mineros.
+  function actualizar(svg, estado) {
+    if (!svg.querySelector('.tramo')) {
+      svg.insertAdjacentHTML('beforeend', C.mapa.contenido(C.mina));
+    }
+    svg.querySelectorAll('.tramo').forEach((p) => {
+      const ez = estado.zonas[p.dataset.zona];
+      if (!ez) return;
+      p.setAttribute('stroke', C.colores[ez.nivel]);
+      p.classList.toggle('evacuando', ez.nivel === 'evacuacion');
+    });
+    svg.querySelectorAll('.estaciones rect[data-zona]').forEach((r) => {
+      const ez = estado.zonas[r.dataset.zona];
+      if (!ez) return;
+      r.setAttribute('fill', ez.nivel === 'normal' ? '#F4F4F1' : '#FFFFFF');
+      r.setAttribute('stroke', ez.nivel === 'normal' ? '#23272B' : C.coloresTexto[ez.nivel]);
+    });
+    C.zonas.forEach((z) => {
+      const ez = estado.zonas[z.id];
+      const lbl = document.getElementById(`lbl-${z.id}`);
+      const val = document.getElementById(`val-${z.id}`);
+      const color = ez.nivel === 'normal' ? '#23272B' : C.coloresTexto[ez.nivel];
+      if (lbl) lbl.setAttribute('fill', color);
+      if (val) {
+        if (ez.nivel === 'normal') {
+          val.textContent = '';
+        } else {
+          const nombre = ez.nivel === 'evacuacion' ? 'Evacuar' : C.niveles[ez.nivel].nombre;
+          val.textContent = `${nombre}: ${ez.textoCorto}`;
+          val.setAttribute('fill', color);
+        }
+      }
+    });
+    estado.cuadrillas.forEach((c) => {
+      const g = document.getElementById(`cq-${c.id}`);
+      if (!g) return;
+      const n = C.personal.dentro().filter((m) => m.cuadrilla === c.codigo).length;
+      g.style.opacity = n > 0 ? '1' : '0.35';
+      g.querySelector('title').textContent = `${c.nombre}, detector ${c.codigo}: ${n} personas dentro`;
+    });
+    marcarFocos(svg, estado);
+    dibujarMineros(svg, estado);
+  }
+
+  C.mapa = { ANCHO, ALTO, punto, normalArriba, contenido, figura, dibujarMineros, marcarFocos, actualizar };
 })();

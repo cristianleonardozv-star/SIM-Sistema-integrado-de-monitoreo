@@ -1,5 +1,5 @@
 /*
- * Canario Digital - Diseño de la mina
+ * SIM (Sistema Integrado de Monitoreo) - Diseño de la mina
  * La mina es una lista de tramos (cada tramo es una zona) y de cuadrillas.
  * Se edita en editor.html y se guarda en el navegador.
  */
@@ -42,6 +42,12 @@
 
   C.longitud = (t, escala) => Math.hypot(t.x2 - t.x1, t.y2 - t.y1) * (escala || 1);
   C.estacionesDe = (t, escala) => Math.max(1, Math.round(C.longitud(t, escala) / 30));
+
+  // Código de una estación fija: E<número de tramo>-<número de estación>, por ejemplo E3-02.
+  C.codigoEstacion = (zonaId, i) => {
+    const idx = C.mina ? C.mina.tramos.findIndex((t) => t.id === zonaId) : -1;
+    return `E${idx + 1}-${String(i + 1).padStart(2, '0')}`;
+  };
 
   C.minaCargar = function () {
     try {

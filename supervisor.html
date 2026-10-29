@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#23272B">
+  <title>Personal | SIM</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='19' fill='%23F2C230'/%3E%3Cpath d='M9 25a11 11 0 0 1 22 0z' fill='%2323272B'/%3E%3Crect x='7' y='25' width='26' height='3.5' rx='1.5' fill='%2323272B'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body data-pagina="personal" data-roles="supervisor">
+<header class="barra" id="barra"></header>
+<section id="banner" class="banner" aria-live="polite" hidden></section>
+
+<main>
+  <div class="cabecera-pagina">
+    <span class="icono-titulo" data-icono="personas" data-tam="30"></span>
+    <div>
+      <h1>Gestión del personal</h1>
+      <p class="nota" id="turno-actual"></p>
+    </div>
+  </div>
+
+  <div class="resumen" id="resumen-personal"></div>
+
+  <div class="pestanas" role="tablist" aria-label="Secciones del personal">
+    <button type="button" role="tab" id="tab-mina" aria-controls="sec-mina" aria-selected="true"><span data-icono="casco"></span>En la mina</button>
+    <button type="button" role="tab" id="tab-ingreso" aria-controls="sec-ingreso" aria-selected="false"><span data-icono="lista"></span>Control de ingreso</button>
+    <button type="button" role="tab" id="tab-mineros" aria-controls="sec-mineros" aria-selected="false"><span data-icono="registro"></span>Mineros registrados</button>
+  </div>
+
+  <!-- En la mina -->
+  <section id="sec-mina" role="tabpanel" aria-labelledby="tab-mina" class="seccion">
+    <div class="fila" style="align-items:flex-start">
+      <section class="panel ancho" aria-labelledby="mapa-t">
+        <div class="cabecera-panel">
+          <h2 id="mapa-t"><span data-icono="castillete" data-tam="22"></span> Dónde está cada minero</h2>
+          <span class="nota">La ubicación sale de la estación fija más cercana, que detecta la etiqueta de la lámpara de cada minero.</span>
+        </div>
+        <div class="mapa-marco"><svg id="mapa" class="mapa" viewBox="0 0 900 490" role="img" aria-labelledby="mapa-desc">
+          <desc id="mapa-desc">Corte de la mina con la ubicación de los mineros que están dentro.</desc>
+        </svg></div>
+      </section>
+      <section class="panel angosto" aria-labelledby="dentro-t">
+        <h2 id="dentro-t">Mineros dentro</h2>
+        <ul id="lista-dentro" class="lista-mineros"></ul>
+      </section>
+    </div>
+  </section>
+
+  <!-- Control de ingreso -->
+  <section id="sec-ingreso" role="tabpanel" aria-labelledby="tab-ingreso" class="seccion" hidden>
+    <div class="fila" style="align-items:flex-start">
+      <form id="form-ingreso" class="panel ancho" novalidate aria-labelledby="ingreso-t">
+        <h2 id="ingreso-t"><span data-icono="lista" data-tam="22"></span> Verificar y autorizar el ingreso</h2>
+        <div class="fila" style="gap:12px">
+          <label class="campo">Minero<select id="i-minero"></select></label>
+          <label class="campo">Zona de destino<select id="i-zona"></select></label>
+        </div>
+        <div>
+          <h3>Requisitos</h3>
+          <ul id="i-requisitos" class="requisitos"></ul>
+        </div>
+        <fieldset>
+          <legend>Lista de chequeo de EPP</legend>
+          <div id="i-epp" class="lista-epp"></div>
+          <button type="button" id="i-todos" class="boton boton-secundario boton-chico">Marcar todos</button>
+        </fieldset>
+        <p id="i-mensaje" class="mensaje-form" role="status"></p>
+        <div class="acciones">
+          <button type="submit" id="i-autorizar" class="boton boton-principal">Autorizar ingreso</button>
+          <button type="button" id="i-rechazar" class="boton boton-peligro">Registrar ingreso no autorizado</button>
+        </div>
+      </form>
+      <section class="panel angosto" aria-labelledby="mov-t">
+        <h2 id="mov-t">Movimientos recientes</h2>
+        <ul id="bitacora" class="lista-simple"></ul>
+      </section>
+    </div>
+  </section>
+
+  <!-- Mineros registrados -->
+  <section id="sec-mineros" role="tabpanel" aria-labelledby="tab-mineros" class="seccion" hidden>
+    <div class="fila" style="align-items:flex-start">
+      <form id="form-registro" class="panel angosto" novalidate aria-labelledby="reg-t">
+        <h2 id="reg-t"><span data-icono="registro" data-tam="22"></span> Registrar minero</h2>
+        <label class="campo">Nombre completo<input type="text" id="r-nombre" maxlength="60" autocomplete="off"></label>
+        <label class="campo">Cargo<select id="r-cargo"></select></label>
+        <div class="fila" style="gap:12px">
+          <label class="campo">Cuadrilla<select id="r-cuadrilla"></select></label>
+          <label class="campo">Turno<select id="r-turno"></select></label>
+        </div>
+        <label class="campo">Capacitación en seguridad minera vigente hasta<input type="date" id="r-capacitacion"></label>
+        <label class="campo">Examen médico vigente hasta<input type="date" id="r-medico"></label>
+        <p id="r-error" class="error" role="alert"></p>
+        <p id="r-ok" class="nota" role="status"></p>
+        <button type="submit" class="boton boton-principal">Registrar minero</button>
+        <p class="nota">Los datos de los trabajadores se usan solo para su seguridad, según la Ley 1581 de 2012.</p>
+      </form>
+      <section class="panel ancho" aria-labelledby="todos-t">
+        <h2 id="todos-t">Personal registrado</h2>
+        <div class="desplazable">
+          <table class="tabla tabla-tarjetas">
+            <thead><tr><th scope="col">Minero</th><th scope="col">Cargo</th><th scope="col">Cuadrilla</th><th scope="col">Turno</th><th scope="col">Capacitación</th><th scope="col">Estado</th><th scope="col"><span class="oculto">Acción</span></th></tr></thead>
+            <tbody id="tabla-mineros"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </section>
+</main>
+
+<script src="js/datos.js"></script>
+<script src="js/iconos.js"></script>
+<script src="js/rol.js"></script>
+<script src="js/mina.js"></script>
+<script src="js/personal.js"></script>
+<script src="js/almacen.js"></script>
+<script src="js/motor.js"></script>
+<script src="js/simulador.js"></script>
+<script src="js/mapa.js"></script>
+<script src="js/avisos.js"></script>
+<script src="js/pagina-supervisor.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

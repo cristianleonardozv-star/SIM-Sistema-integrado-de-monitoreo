@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#23272B">
+  <title>Mantenimiento | SIM</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='19' fill='%23F2C230'/%3E%3Cpath d='M9 25a11 11 0 0 1 22 0z' fill='%2323272B'/%3E%3Crect x='7' y='25' width='26' height='3.5' rx='1.5' fill='%2323272B'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body data-pagina="mantenimiento" data-roles="ingeniero">
+<header class="barra" id="barra"></header>
+
+<main>
+  <div class="cabecera-pagina">
+    <span class="icono-titulo" data-icono="llave" data-tam="30"></span>
+    <div>
+      <h1>Mantenimiento de equipos</h1>
+      <p class="nota">Calibraciones, pruebas, limpiezas y cambios de sensores, filtros y equipos. El sistema avisa cuando una tarea se vence.</p>
+    </div>
+  </div>
+
+  <div class="resumen" id="resumen-mant"></div>
+
+  <section class="panel" aria-labelledby="tareas-t">
+    <div class="cabecera-panel">
+      <h2 id="tareas-t">Tareas</h2>
+      <label class="campo campo-linea">Mostrar
+        <select id="f-estado">
+          <option value="pendientes">Vencidas y próximas</option>
+          <option value="todas">Todas</option>
+          <option value="vencida">Solo vencidas</option>
+        </select>
+      </label>
+    </div>
+    <div class="desplazable">
+      <table class="tabla tabla-tarjetas tabla-mant">
+        <thead>
+          <tr><th scope="col">Estado</th><th scope="col">Actividad</th><th scope="col">Equipo</th><th scope="col">Ubicación</th><th scope="col">Frecuencia</th><th scope="col">Próxima</th><th scope="col"><span class="oculto">Acción</span></th></tr>
+        </thead>
+        <tbody id="tabla-mant"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="fila" style="align-items:flex-start">
+    <section class="panel" style="flex:1 1 420px" aria-labelledby="base-t">
+      <h2 id="base-t">Base de las frecuencias</h2>
+      <ul class="lista-simple">
+        <li><strong>Decreto 1886 de 2015, artículo 11:</strong> el titular debe garantizar el mantenimiento y la calibración periódica de los equipos de medición, siguiendo las indicaciones del fabricante y con personal habilitado.</li>
+        <li><strong>Decreto 1886 de 2015, artículo 7:</strong> define la prueba de verificación con gas patrón para saber si un detector es apto para su uso.</li>
+        <li><strong>Circular ANM 01 de 2022:</strong> pide un mantenimiento adecuado de los equipos, hecho por personal competente.</li>
+        <li><strong>Guía ISEA citada por OSHA:</strong> probar los detectores antes de cada día de uso y no dejar pasar más de 30 días entre pruebas.</li>
+      </ul>
+      <p class="nota">Las frecuencias marcadas como supuesto son recomendaciones típicas de fabricantes. Ajústalas a los manuales de los equipos reales en <code>js/mantenimiento.js</code>.</p>
+    </section>
+    <section class="panel" style="flex:1 1 360px" aria-labelledby="bita-t">
+      <h2 id="bita-t">Últimos trabajos registrados</h2>
+      <ul id="bitacora-mant" class="lista-simple"></ul>
+    </section>
+  </div>
+</main>
+
+<script src="js/datos.js"></script>
+<script src="js/iconos.js"></script>
+<script src="js/rol.js"></script>
+<script src="js/mina.js"></script>
+<script src="js/personal.js"></script>
+<script src="js/almacen.js"></script>
+<script src="js/motor.js"></script>
+<script src="js/simulador.js"></script>
+<script src="js/mantenimiento.js"></script>
+<script src="js/avisos.js"></script>
+<script src="js/pagina-mantenimiento.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

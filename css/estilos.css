@@ -1,5 +1,5 @@
 /*
- * Canario Digital - Estilos
+ * SIM (Sistema Integrado de Monitoreo) - Estilos
  * Filosofía de interfaz industrial (ISA-101): lo normal en gris,
  * el color solo aparece cuando hay un problema.
  */
@@ -288,3 +288,202 @@ legend { font-weight: 700; padding: 0 0 8px; }
 .boton-peligro:hover { background: var(--peligro-fondo); }
 .estado-guardado { font-size: 14px; font-weight: 600; }
 .estado-guardado.pendiente { color: var(--precaucion-texto); }
+
+/* =========================================================
+   SIM: roles, personal, mantenimiento, íconos y celular
+   ========================================================= */
+.icono { display: inline-block; vertical-align: -0.2em; flex: none; }
+h1 .icono, h2 .icono, h3 .icono, summary .icono { color: var(--suave); margin-right: 2px; }
+[data-icono] { display: inline-flex; }
+
+/* Encabezado */
+.marca svg { flex: none; }
+.marca-texto strong { letter-spacing: 0.04em; }
+.nav a { display: inline-flex; align-items: center; gap: 6px; position: relative; }
+.chip-rol { display: inline-flex; align-items: center; gap: 6px; color: var(--panel); text-decoration: none; border: 1px solid #6B7176; border-radius: 20px; padding: 6px 12px; font-weight: 600; }
+.chip-rol:hover { color: #fff; border-color: var(--precaucion); }
+.pie { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 18px 16px 24px; color: var(--suave); font-size: 13px; text-align: center; }
+
+/* Pantalla de roles */
+.pagina-roles { background: var(--grafito); min-height: 100vh; }
+.pagina-roles .nota { color: #C9CCC8; }
+.roles { max-width: 960px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 28px; color: var(--panel); }
+.roles-marca { display: flex; align-items: center; gap: 18px; justify-content: center; }
+.roles-marca h1 { margin: 0; font-family: var(--fuente-cifra); font-size: 64px; line-height: 1; letter-spacing: 0.06em; color: var(--precaucion); }
+.roles-marca p { margin: 4px 0 0; font-size: 18px; }
+.roles-panel { background: var(--panel); color: var(--tinta); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 10px; }
+.roles-panel .nota { color: var(--suave); }
+.roles-panel h2 { margin: 0; font-family: var(--fuente-cifra); font-size: 26px; }
+.tarjetas-rol { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 8px; }
+.tarjeta-rol {
+  display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; cursor: pointer;
+  background: #fff; border: 2px solid var(--linea); border-radius: 12px; padding: 20px 18px 22px; font: inherit; color: var(--tinta);
+  transition: border-color 0.2s, transform 0.2s;
+}
+.tarjeta-rol:hover { border-color: var(--grafito); transform: translateY(-2px); }
+.tarjeta-rol.actual { border-color: var(--precaucion); }
+.tarjeta-rol strong { font-family: var(--fuente-cifra); font-size: 24px; }
+.tarjeta-rol .figura { display: block; background: var(--fondo); border-radius: 50%; padding: 10px 24px 0; overflow: hidden; }
+.simbolos { display: flex; justify-content: center; gap: 22px; color: var(--precaucion); opacity: 0.8; flex-wrap: wrap; }
+
+/* Cabeceras de página y resumen */
+.cabecera-pagina { display: flex; gap: 14px; align-items: center; }
+.cabecera-pagina h1 { margin: 0; font-family: var(--fuente-cifra); font-size: 32px; }
+.cabecera-pagina .nota { margin: 0; font-size: 15px; }
+.icono-titulo { background: var(--precaucion); color: var(--grafito); border-radius: 12px; width: 52px; height: 52px; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.resumen { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.resumen-item { background: var(--panel); border: 1px solid var(--linea); border-radius: var(--radio); padding: 12px 16px; display: flex; align-items: baseline; gap: 10px; }
+.resumen-item strong { font-size: 32px; line-height: 1; }
+.resumen-item span { color: var(--suave); font-size: 14px; }
+
+/* Pestañas del supervisor */
+.pestanas { display: flex; gap: 6px; flex-wrap: wrap; border-bottom: 2px solid var(--linea); }
+.pestanas button {
+  display: inline-flex; align-items: center; gap: 8px; background: transparent; border: 0; border-bottom: 3px solid transparent;
+  margin-bottom: -2px; padding: 12px 16px; min-height: 48px; font: inherit; font-weight: 600; color: var(--suave); cursor: pointer;
+}
+.pestanas button[aria-selected="true"] { color: var(--tinta); border-bottom-color: var(--precaucion); }
+.seccion[hidden] { display: none; }
+
+/* Listas de mineros y personas */
+.lista-mineros { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-height: 620px; overflow-y: auto; }
+.lista-mineros li { display: flex; gap: 10px; align-items: flex-start; background: #fff; border: 1px solid var(--linea); border-radius: 8px; padding: 10px 12px; }
+.avatar-minero { background: var(--precaucion); color: var(--grafito); border-radius: 50%; width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.datos-minero { display: flex; flex-direction: column; gap: 1px; flex: 1 1 auto; min-width: 0; font-size: 14px; }
+.acciones-minero { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.lista-personas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.lista-personas li { display: flex; gap: 8px; align-items: center; }
+.mini-minero { background: var(--precaucion); border-radius: 50%; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.lista-simple { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+.lista-simple .mov { list-style: none; margin-left: -18px; display: flex; gap: 8px; align-items: flex-start; }
+.mov-rechazo .icono, .mov-bloqueo .icono, .mov-evacuacion .icono { color: var(--peligro); }
+.mov-ingreso .icono, .mov-permiso .icono { color: #0F6E56; }
+.pildora.nivel-dentro { background: #DFF1E9; color: #0B5A44; }
+.texto-peligro { color: var(--peligro-texto); font-weight: 600; }
+
+/* Control de ingreso */
+.requisitos { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.requisitos li { display: flex; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 6px; }
+.requisitos .cumple { background: #E3F3EC; color: #0B5A44; }
+.requisitos .no-cumple { background: var(--peligro-fondo); color: var(--peligro-texto); font-weight: 600; }
+.lista-epp { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 6px; margin-bottom: 8px; }
+.opcion-epp { display: flex; gap: 10px; align-items: center; border: 1px solid var(--linea); border-radius: 6px; padding: 10px 12px; cursor: pointer; background: #fff; min-height: 24px; font-size: 14px; }
+.opcion-epp:has(input:checked) { border-color: #0F6E56; background: #E3F3EC; }
+.opcion-epp input { width: 20px; height: 20px; margin: 0; flex: none; }
+.mensaje-form { margin: 0; font-weight: 600; }
+.mensaje-form:empty { display: none; }
+.mensaje-form.ok { color: #0B5A44; }
+.acciones { display: flex; flex-wrap: wrap; gap: 10px; }
+.boton[disabled] { opacity: 0.55; cursor: not-allowed; }
+.boton-chico { min-height: 38px; padding: 0 12px; font-size: 13px; }
+fieldset > .boton-chico { align-self: flex-start; }
+.campo-linea { flex: 0 1 260px; }
+
+/* Mantenimiento */
+.tabla-mant td { vertical-align: top; }
+
+/* Mapa: marco desplazable, estación que titila y mineros */
+.mapa-marco { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.mapa .estaciones rect.foco {
+  transform-box: fill-box; transform-origin: center; stroke-width: 2.5;
+  animation: estacionFoco 0.7s steps(2, jump-none) infinite;
+}
+.mapa .estaciones rect.foco-precaucion { --foco: #F2C230; }
+.mapa .estaciones rect.foco-peligro, .mapa .estaciones rect.foco-evacuacion { --foco: #C4291C; }
+.mapa .estaciones rect.foco-falla { --foco: #4B4FB8; }
+@keyframes estacionFoco {
+  0% { fill: var(--foco); transform: scale(1.8); }
+  100% { fill: #FFFFFF; transform: scale(1.2); }
+}
+.mapa .minero.en-peligro .cuerpo, .mapa .minero.evacuando .cuerpo { stroke: #C4291C; }
+.mapa .minero.evacuando { animation: titila 0.8s steps(2, jump-none) infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .mapa .estaciones rect.foco { animation: none; fill: var(--foco); transform: scale(1.8); }
+  .mapa .minero.evacuando { animation: none; }
+}
+
+/* ---------- Celular ---------- */
+@media (max-width: 760px) {
+  body { padding-bottom: 76px; font-size: 15px; }
+  .barra { padding: 10px 14px; gap: 8px 12px; position: sticky; top: 0; z-index: 15; }
+  .marca { gap: 8px; }
+  .marca-texto strong { font-size: 20px; }
+  .marca-texto span { font-size: 11px; }
+  .estado-sistema { gap: 10px; }
+  .estado-sistema .dato-est { display: none; }
+  .estado-sistema strong.cifra { font-size: 16px; }
+  .btn-avisos { min-height: 36px; padding: 0 10px; font-size: 13px; }
+  .chip-rol span { display: none; }
+  .chip-rol { padding: 6px 8px; }
+
+  /* Navegación como barra inferior con íconos */
+  .nav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    background: var(--grafito); border-top: 1px solid #3A4046;
+    display: flex; flex-wrap: nowrap; gap: 0; padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
+  }
+  .nav a { flex: 1 1 0; min-width: 0; flex-direction: column; gap: 2px; padding: 6px 2px; font-size: 11px; border-radius: 8px; text-align: center; }
+  .nav a .icono { width: 22px; height: 22px; }
+  .nav a .nav-texto { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .nav a[aria-current="page"] { background: var(--precaucion); color: var(--grafito); }
+  .nav .badge { position: absolute; top: 2px; right: 18%; margin: 0; padding: 0 6px; font-size: 11px; }
+
+  main { padding: 14px 12px 20px; gap: 14px; }
+  .fila { gap: 14px; }
+  .panel { padding: 14px; gap: 10px; }
+  .panel h1 { font-size: 22px; }
+  .panel h2 { font-size: 20px; }
+  .ancho, .angosto { flex-basis: 100%; }
+  .cabecera-pagina h1 { font-size: 26px; }
+  .icono-titulo { width: 44px; height: 44px; }
+  .resumen { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .resumen-item { flex-direction: column; gap: 2px; padding: 10px 12px; }
+  .resumen-item strong { font-size: 26px; }
+  .resumen-item span { font-size: 12px; }
+
+  .banner { padding: 12px 14px; }
+  .banner .titulo { font-size: 16px; }
+  .banner a.boton { width: 100%; text-align: center; justify-content: center; }
+  .barra-sonido { padding: 10px 14px; }
+  .barra-sonido .boton { width: 100%; }
+
+  /* El mapa conserva su tamaño y se desliza de lado */
+  .mapa-marco { margin: 0 -14px; padding: 0 14px; }
+  .mapa-marco .mapa { min-width: 760px; }
+  .mapa-marco::after { content: 'Desliza para ver toda la mina'; display: block; font-size: 12px; color: var(--suave); margin-top: 4px; }
+
+  /* Tablas convertidas en tarjetas */
+  .tabla-tarjetas, .tabla-tarjetas tbody, .tabla-tarjetas tr { display: block; width: 100%; min-width: 0 !important; }
+  .tabla-tarjetas thead { display: none; }
+  .tabla-tarjetas tr { border: 1px solid var(--linea); border-radius: 8px; margin-bottom: 8px; background: #fff; padding: 6px 0; }
+  .tabla-tarjetas tr[class*="fila-"] { border-width: 2px; }
+  .tabla-tarjetas td, .tabla-tarjetas tbody th { display: flex; justify-content: space-between; align-items: center; gap: 12px; border: 0 !important; padding: 6px 12px; text-align: right; }
+  .tabla-tarjetas tbody th { justify-content: flex-start; text-align: left; font-size: 16px; }
+  .tabla-tarjetas td::before { content: attr(data-etiqueta); color: var(--suave); font-size: 13px; text-align: left; flex: none; }
+  .tabla-tarjetas td[data-etiqueta=""]::before { content: none; }
+  .tabla-tarjetas td[data-etiqueta=""] { justify-content: flex-end; }
+  .tabla-tarjetas .num { text-align: right; }
+  .desplazable { overflow-x: visible; }
+  .tabla-eventos { min-width: 720px; }
+  .desplazable:has(.tabla-eventos) { overflow-x: auto; }
+
+  .tabla-zonas.tabla-tarjetas tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tabla-zonas.tabla-tarjetas tbody th { grid-column: 1 / -1; }
+  .tabla-zonas.tabla-tarjetas td { padding: 4px 12px; }
+  .botones-sim { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .botones-sim .boton { padding: 0 10px; font-size: 14px; min-height: 52px; }
+  .acciones .boton, form > .boton { width: 100%; }
+  .pestanas { flex-wrap: nowrap; overflow-x: auto; }
+  .pestanas button { white-space: nowrap; padding: 10px 12px; }
+  .lista-mineros { max-height: none; }
+  .lista-mineros li { flex-wrap: wrap; }
+  .acciones-minero { flex-direction: row; align-items: center; width: 100%; justify-content: space-between; }
+  .cabecera-alerta { padding: 16px; }
+  .cabecera-alerta h1 { font-size: 26px; }
+  .cabecera-alerta .reloj-alerta strong { font-size: 36px; }
+  .mensajes { bottom: 84px; right: 10px; left: 10px; max-width: none; }
+  .roles { padding: 24px 14px; }
+  .roles-marca h1 { font-size: 48px; }
+  .roles-marca p { font-size: 15px; }
+  .pie { padding-bottom: 12px; }
+}

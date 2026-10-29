@@ -1,5 +1,5 @@
 /*
- * Canario Digital - Arranque común de todas las páginas
+ * SIM (Sistema Integrado de Monitoreo) - Arranque común de todas las páginas
  * Carga el estado, corre el ciclo de lecturas cada 5 s y actualiza el encabezado.
  * Cada página define CANARIO.alActualizar(estado, historial) para dibujarse.
  */
@@ -27,8 +27,17 @@
     }
   }
 
+  function badgeMantenimiento() {
+    const b = document.getElementById('badge-mant');
+    if (!b || !C.mantenimiento) return;
+    const n = C.mantenimiento.vencidas().length;
+    b.textContent = n;
+    b.hidden = n === 0;
+  }
+
   function dibujar() {
     actualizarEncabezado();
+    badgeMantenimiento();
     if (typeof C.alActualizar === 'function') C.alActualizar(estado, historial);
   }
 
@@ -36,6 +45,8 @@
     const ahora = Date.now();
     C.simulador.tick(estado, ahora);
     const avisos = C.motor.evaluar(estado, historial, ahora);
+    if (C.personal) C.personal.tick(estado);
+    if (C.mantenimiento) avisos.push(...C.mantenimiento.revisar());
     C.almacen.guardarEstado(estado);
     C.almacen.guardarHistorial(historial);
     avisos.forEach((a) => C.avisos.emitir(a));
@@ -51,6 +62,7 @@
   };
 
   function iniciar() {
+    if (C.rolValido === false) return; // la página está redirigiendo al rol correcto
     estado = C.almacen.cargarEstado();
     historial = C.almacen.cargarHistorial();
     // Si la mina se rediseñó, se empieza un monitoreo nuevo.

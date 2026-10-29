@@ -1,5 +1,5 @@
 /*
- * Canario Digital - Simulador de sensores (datos inyectados)
+ * SIM (Sistema Integrado de Monitoreo) - Simulador de sensores (datos inyectados)
  * Genera lecturas realistas cada 5 s para las zonas de la mina diseñada
  * y permite provocar escenarios de riesgo en cualquier zona.
  */
@@ -134,12 +134,28 @@
     alternar(estado, id, zona) {
       if (id === 'normalizar') {
         estado.escenarios = {};
-        estado.cuadrillas.forEach((c) => { c.personasActuales = c.personas; });
+        estado.focos = {};
         return;
       }
       const k = clave(id, zona);
       if (estado.escenarios[k]) delete estado.escenarios[k];
-      else estado.escenarios[k] = Date.now();
+      else {
+        estado.escenarios[k] = Date.now();
+        // La estación donde nace el problema (la que titila en el mapa).
+        const z = C.zona(zona);
+        if (z && !C.escenarios[id].global) {
+          estado.focos = estado.focos || {};
+          estado.focos[zona] = Math.floor(z.estaciones * (0.3 + Math.random() * 0.45));
+        }
+      }
+    },
+
+    // Índice de la estación que detecta el problema en una zona.
+    focoDe(estado, zonaId) {
+      const z = C.zona(zonaId);
+      const f = estado.focos && estado.focos[zonaId];
+      if (f != null && z && f < z.estaciones) return f;
+      return z ? Math.floor(z.estaciones / 2) : 0;
     },
 
     descripcion(k) {

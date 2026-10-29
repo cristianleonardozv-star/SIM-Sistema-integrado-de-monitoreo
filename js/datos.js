@@ -1,5 +1,5 @@
 /*
- * Canario Digital - Datos base del prototipo
+ * SIM (Sistema Integrado de Monitoreo) - Datos base del prototipo
  * Zonas, estaciones, cuadrillas y tabla de límites configurable.
  *
  * IMPORTANTE: los límites marcados como "VERIFICAR" son valores de ejemplo

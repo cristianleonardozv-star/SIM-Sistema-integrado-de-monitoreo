@@ -1,4 +1,4 @@
-# Canario Digital
+# SIM: Sistema Integrado de Monitoreo
 
 Sistema inteligente de monitoreo de atmósferas mineras. Prototipo para hackatón.
 
@@ -6,14 +6,16 @@ Vigila el aire de una mina subterránea de carbón, alerta a los mineros y a sup
 
 Este prototipo **no usa base de datos ni servidor**: las lecturas se generan con un simulador en el navegador y el historial se guarda en `localStorage`. Por eso funciona directamente en GitHub Pages.
 
-## Pantallas
+## Roles y pantallas
 
-| Página | Qué muestra |
+Al abrir `index.html` se elige el rol, sin contraseña (prototipo):
+
+| Rol | Pantallas |
 | --- | --- |
-| `index.html` | Sala de control: corte de la mina, detalle de la zona, estado por zona y panel de simulación |
-| `alerta.html` | Alerta activa: línea de tiempo, personas en la zona, confirmación y escalamiento |
-| `historial.html` | Gráficas con franjas de nivel, eventos registrados, tabla de límites y exportación a CSV |
-| `editor.html` | Diseñar la mina: dibujar y mover tramos, nombrarlos, elegir su tipo y ubicar cuadrillas |
+| **Supervisor de personal** | `supervisor.html`: mineros dentro de la mina y su ubicación en el mapa, control de ingreso con requisitos y lista de chequeo de EPP, registro de mineros, bloqueo y permiso de ingreso. También ve `alerta.html`. |
+| **Ingeniero de minas** | `ingeniero.html` (monitoreo), `alerta.html`, `historial.html`, `mantenimiento.html` (calibración, pruebas y cambio de sensores, filtros y equipos, con aviso cuando se vencen) y `editor.html` (diseño de la mina). |
+
+En el mapa, cada minero aparece como un muñequito con casco, ubicado por la estación fija más cercana. Cuando una zona entra en alerta, la estación que detectó el problema titila.
 
 ## Cómo abrirlo en Visual Studio Code
 

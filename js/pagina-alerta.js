@@ -1,5 +1,5 @@
 /*
- * Canario Digital - Página de alertas (alerta.html)
+ * SIM (Sistema Integrado de Monitoreo) - Página de alertas (alerta.html)
  * Línea de tiempo del evento, personas en la zona y confirmación.
  */
 (function () {
@@ -83,25 +83,23 @@
   }
 
   function dibujarPersonas(estado, ev) {
-    const cuadrillas = estado.cuadrillas.filter((c) => c.zona === ev.zona);
-    const total = cuadrillas.reduce((s, c) => s + c.personasActuales, 0);
+    const dentro = C.personal.enZona(ev.zona);
+    const evacuando = C.personal.dentro().filter((m) => m.evacuando);
+    const total = dentro.length;
+    const c = estado.cuadrillas.find((q) => q.zona === ev.zona);
     const el = document.getElementById('personas');
-    if (!cuadrillas.length) {
-      el.innerHTML = '<div style="display:flex;align-items:baseline;gap:10px"><span class="cifra-grande">0</span><span class="nota">No hay cuadrillas asignadas a esta zona.</span></div>';
-      return;
-    }
-    const c = cuadrillas[0];
+    const lista = dentro.slice(0, 8).map((m) => `<li><span class="mini-minero" aria-hidden="true">${C.icono('casco', 16)}</span><span><strong>${C.esc(m.nombre)}</strong> <span class="nota">${C.esc(m.codigo)}, cerca de la estación ${C.personal.estacionCercana(m)}</span></span></li>`).join('');
     el.innerHTML = `
       <div style="display:flex;align-items:baseline;gap:10px">
         <span class="cifra-grande">${total}</span>
-        <span class="nota">${C.esc(c.nombre)}, detector ${C.esc(c.codigo)}${total === 0 ? '. Todas las personas salieron de la zona.' : ''}</span>
+        <span class="nota">${total === 0 ? 'No queda nadie en la zona.' : 'personas dentro de la zona'}${evacuando.length ? `. ${evacuando.length} saliendo por evacuación.` : ''}</span>
       </div>
-      <dl class="datos">
-        <div><dt>Lectura del detector</dt><dd>CH₄ ${C.conUnidad('ch4', c.lectura ? c.lectura.ch4 : 0)}</dd></div>
+      ${lista ? `<ul class="lista-personas">${lista}</ul>` : ''}
+      ${c ? `<dl class="datos">
+        <div><dt>Detector de la cuadrilla</dt><dd>${C.esc(c.codigo)}: CH₄ ${C.conUnidad('ch4', c.lectura ? c.lectura.ch4 : 0)}</dd></div>
         <div><dt>Aviso en el detector</dt><dd>${C.rango(c.nivelDetector) >= 1 ? 'Vibración y pitido activos' : 'Sin aviso'}</dd></div>
-        <div><dt>Batería del detector</dt><dd>${Math.round(c.bateria)} %</dd></div>
-        <div><dt>Ruta de salida</dt><dd>Galería principal a bocamina</dd></div>
-      </dl>`;
+      </dl>` : ''}
+      <p class="nota">Ruta de salida: hacia la bocamina por la galería principal.</p>`;
   }
 
   function dibujarFormulario(ev) {
@@ -198,7 +196,7 @@
       <section class="panel vacio">
         <h1>No hay alertas abiertas</h1>
         <p class="nota" style="font-size:15px">Todas las zonas están en Normal o Precaución. Para la demostración, provoca un evento desde el panel de simulación de la sala de control.</p>
-        <a class="boton boton-principal" href="index.html">Ir a la sala de control</a>
+        <a class="boton boton-principal" href="${C.inicioRol()}">Volver al inicio</a>
       </section>`;
     document.getElementById('cuerpo-alerta').hidden = true;
     document.getElementById('panel-confirmar').hidden = true;

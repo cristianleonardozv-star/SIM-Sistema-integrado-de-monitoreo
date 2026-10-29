@@ -1,5 +1,5 @@
 /*
- * Canario Digital - Página de la sala de control (index.html)
+ * SIM (Sistema Integrado de Monitoreo) - Página de monitoreo del ingeniero (ingeniero.html)
  */
 (function () {
   const C = window.CANARIO;
@@ -14,7 +14,7 @@
   }
 
   function personasEn(estado, zonaId) {
-    return estado.cuadrillas.filter((c) => c.zona === zonaId).reduce((s, c) => s + c.personasActuales, 0);
+    return C.personal.enZona(zonaId).length;
   }
 
   // ---------- Banner de la alerta más grave ----------
@@ -52,46 +52,7 @@
 
   // ---------- Mapa ----------
   function dibujarMapa(estado) {
-    const svg = document.getElementById('mapa');
-    if (!svg.querySelector('.tramo')) {
-      svg.insertAdjacentHTML('beforeend', C.mapa.contenido(C.mina));
-    }
-    svg.querySelectorAll('.tramo').forEach((p) => {
-      const ez = estado.zonas[p.dataset.zona];
-      if (!ez) return;
-      p.setAttribute('stroke', C.colores[ez.nivel]);
-      p.classList.toggle('evacuando', ez.nivel === 'evacuacion');
-    });
-    svg.querySelectorAll('.estaciones rect[data-zona]').forEach((r) => {
-      const ez = estado.zonas[r.dataset.zona];
-      if (!ez) return;
-      r.setAttribute('fill', ez.nivel === 'normal' ? '#F4F4F1' : '#FFFFFF');
-      r.setAttribute('stroke', ez.nivel === 'normal' ? '#23272B' : C.coloresTexto[ez.nivel]);
-    });
-    C.zonas.forEach((z) => {
-      const ez = estado.zonas[z.id];
-      const lbl = document.getElementById(`lbl-${z.id}`);
-      const val = document.getElementById(`val-${z.id}`);
-      const color = ez.nivel === 'normal' ? '#23272B' : C.coloresTexto[ez.nivel];
-      if (lbl) lbl.setAttribute('fill', color);
-      if (val) {
-        if (ez.nivel === 'normal') {
-          val.textContent = '';
-        } else {
-          const nombre = ez.nivel === 'evacuacion' ? 'Evacuar' : C.niveles[ez.nivel].nombre;
-          val.textContent = `${nombre}: ${ez.textoCorto}`;
-          val.setAttribute('fill', color);
-        }
-      }
-      const falla = document.getElementById(`falla-${z.id}`);
-      if (falla) falla.style.display = ez.causas.some((c) => c.v === 'falla') ? '' : 'none';
-    });
-    estado.cuadrillas.forEach((c) => {
-      const g = document.getElementById(`cq-${c.id}`);
-      if (!g) return;
-      g.style.opacity = c.personasActuales > 0 ? '1' : '0.35';
-      g.querySelector('title').textContent = `${c.nombre}: ${c.personasActuales} personas`;
-    });
+    C.mapa.actualizar(document.getElementById('mapa'), estado);
   }
 
   // ---------- Detalle de la zona ----------
@@ -146,9 +107,17 @@
 
     const causas = document.getElementById('det-causas');
     const textos = ez.causas.filter((c) => c.texto).map((c) => c.texto);
+    if (ez.nivel !== 'normal') {
+      const f = C.simulador.focoDe(estado, zonaId);
+      textos.unshift(`Detectado por la estación ${C.codigoEstacion(zonaId, f)}, a unos ${Math.round((f + 0.5) * 30)} m del inicio del tramo (titila en el mapa)`);
+    }
     causas.hidden = !textos.length;
     causas.className = `causas fila-${ez.nivel}`;
-    causas.textContent = textos.join('. ');
+    causas.textContent = textos.join('. ') + (textos.length ? '.' : '');
+    const mant = document.getElementById('det-mant');
+    const vencidas = C.mantenimiento ? C.mantenimiento.deZona(zonaId) : [];
+    mant.hidden = !vencidas.length;
+    mant.innerHTML = vencidas.length ? `Mantenimiento vencido en esta zona: ${vencidas.map((t) => C.esc(t.act.toLowerCase())).join(', ')}. <a href="mantenimiento.html">Ver mantenimiento</a>` : '';
 
     const filas = ['o2', 'co', 'co2', 'h2s', 'polvo', 'temp', 'pres'].map((k) => {
       const v = ez.lecturas[k];
@@ -173,7 +142,7 @@
     if (c && c.lectura) {
       const hace = Math.round((Date.now() - c.ultimoDato) / 1000);
       cq.innerHTML = `
-        <div><strong>${C.esc(c.nombre)}, detector ${C.esc(c.codigo)}</strong><span style="color:#575C61">${c.personasActuales} personas en la zona. CH₄ en el detector: ${C.conUnidad('ch4', c.lectura.ch4)}</span></div>
+        <div><strong>${C.esc(c.nombre)}, detector ${C.esc(c.codigo)}</strong><span style="color:#575C61">${personasEn(estado, zonaId)} personas en la zona. CH₄ en el detector: ${C.conUnidad('ch4', c.lectura.ch4)}</span></div>
         <div class="der"><span>Último dato hace ${hace} s</span><span style="color:#575C61">Batería ${Math.round(c.bateria)} %</span></div>`;
     } else {
       cq.innerHTML = '<div><strong>Sin cuadrilla en esta zona</strong><span style="color:#575C61">El ingreso se autoriza solo si la zona está en Normal o Precaución.</span></div>';
@@ -189,13 +158,13 @@
       const n = ez.nivel;
       return `<tr class="${n !== 'normal' ? `fila-${n}` : ''}">
         <th scope="row"><button type="button" class="btn-zona" data-zona="${z.id}" aria-pressed="${z.id === zonaId}">${C.esc(z.nombre)}</button></th>
-        <td><span class="pildora nivel-${n}">${C.niveles[n].nombre}</span></td>
-        <td class="num ${C.motor.nivelVariable('ch4', v.ch4) !== 'normal' ? 'fuerte' : ''}">${C.conUnidad('ch4', v.ch4)}</td>
-        <td class="num ${C.motor.nivelVariable('o2', v.o2) !== 'normal' ? 'fuerte' : ''}">${C.conUnidad('o2', v.o2)}</td>
-        <td class="num ${C.motor.nivelVariable('co', v.co) !== 'normal' ? 'fuerte' : ''}">${C.conUnidad('co', v.co)}</td>
-        <td class="num ${C.motor.nivelVariable('polvo', v.polvo) !== 'normal' ? 'fuerte' : ''}">${C.conUnidad('polvo', v.polvo)}</td>
-        <td class="num ${ez.estacionesEnLinea < z.estaciones ? 'fuerte' : ''}">${ez.estacionesEnLinea} de ${z.estaciones}</td>
-        <td class="num">${personasEn(estado, z.id)}</td></tr>`;
+        <td data-etiqueta="Nivel"><span class="pildora nivel-${n}">${C.niveles[n].nombre}</span></td>
+        <td data-etiqueta="CH₄" class="num ${C.motor.nivelVariable('ch4', v.ch4) !== 'normal' ? 'fuerte' : ''}">${C.conUnidad('ch4', v.ch4)}</td>
+        <td data-etiqueta="O₂" class="num ${C.motor.nivelVariable('o2', v.o2) !== 'normal' ? 'fuerte' : ''}">${C.conUnidad('o2', v.o2)}</td>
+        <td data-etiqueta="CO" class="num ${C.motor.nivelVariable('co', v.co) !== 'normal' ? 'fuerte' : ''}">${C.conUnidad('co', v.co)}</td>
+        <td data-etiqueta="Polvo" class="num ${C.motor.nivelVariable('polvo', v.polvo) !== 'normal' ? 'fuerte' : ''}">${C.conUnidad('polvo', v.polvo)}</td>
+        <td data-etiqueta="Estaciones" class="num ${ez.estacionesEnLinea < z.estaciones ? 'fuerte' : ''}">${ez.estacionesEnLinea} de ${z.estaciones}</td>
+        <td data-etiqueta="Personas" class="num">${personasEn(estado, z.id)}</td></tr>`;
     }).join('');
   }
 
