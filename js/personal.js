@@ -101,6 +101,114 @@
     if (datos.bitacora.length > 300) datos.bitacora.splice(0, datos.bitacora.length - 300);
   }
 
+  // ---------- Ruta de evacuación ----------
+  // Los tramos se unen donde el extremo de uno toca a otro (en su extremo o en su mitad).
+  // Con esas uniones se calcula, para cada punto de la mina, el camino más corto hasta la
+  // boca de la bocamina. Así los mineros recorren todos los tramos intermedios y no saltan.
+  const METROS_POR_LECTURA = 60; // velocidad de evacuación acelerada para la demo (cada 5 s)
+  const TOLERANCIA = 8;          // puntos del plano para considerar que dos tramos se tocan
+  let ruta = null;
+  let rutaDe = null;
+
+  function proyectar(t, x, y) {
+    const dx = t.x2 - t.x1;
+    const dy = t.y2 - t.y1;
+    const l2 = dx * dx + dy * dy || 1;
+    const p = Math.max(0, Math.min(1, ((x - t.x1) * dx + (y - t.y1) * dy) / l2));
+    return { p, d: Math.hypot(t.x1 + p * dx - x, t.y1 + p * dy - y) };
+  }
+
+  function calcularRuta(mina) {
+    const tramos = mina.tramos;
+    const escala = mina.escala || 1;
+    const nodos = {};
+    const porTramo = {};
+    const enlaces = {};
+    const clave = (id, p) => `${id}@${p.toFixed(4)}`;
+    const nodo = (id, p) => {
+      const k = clave(id, p);
+      if (!nodos[k]) {
+        nodos[k] = { k, t: id, p, dist: Infinity, sig: null };
+        (porTramo[id] = porTramo[id] || []).push(nodos[k]);
+        enlaces[k] = [];
+      }
+      return nodos[k];
+    };
+    const unir = (a, b, costo) => {
+      enlaces[a.k].push({ n: b, costo });
+      enlaces[b.k].push({ n: a, costo });
+    };
+
+    // Uniones entre tramos.
+    tramos.forEach((a) => tramos.forEach((b) => {
+      if (a === b) return;
+      [[0, b.x1, b.y1], [1, b.x2, b.y2]].forEach(([pb, x, y]) => {
+        const r = proyectar(a, x, y);
+        if (r.d <= TOLERANCIA) unir(nodo(a.id, r.p), nodo(b.id, pb), 0);
+      });
+    }));
+
+    // Boca de la mina: el extremo de la bocamina más lejano de cualquier unión.
+    const boca = tramos.find((t) => t.tipo === 'bocamina') || tramos[0];
+    const uniones = (porTramo[boca.id] || []).map((n) => n.p);
+    const lejania = (p) => (uniones.length ? Math.min(...uniones.map((u) => Math.abs(u - p))) : 1);
+    const salida = nodo(boca.id, lejania(0) >= lejania(1) ? 0 : 1);
+
+    // Tramos recorridos a lo largo: une los puntos de cada tramo en orden.
+    tramos.forEach((t) => {
+      const lista = (porTramo[t.id] || []).slice().sort((x, y) => x.p - y.p);
+      const largo = C.longitud(t, escala);
+      for (let i = 1; i < lista.length; i++) unir(lista[i - 1], lista[i], (lista[i].p - lista[i - 1].p) * largo);
+    });
+
+    // Distancia de cada punto a la salida (Dijkstra).
+    salida.dist = 0;
+    const pendientes = new Set(Object.values(nodos));
+    while (pendientes.size) {
+      let u = null;
+      pendientes.forEach((n) => { if (!u || n.dist < u.dist) u = n; });
+      pendientes.delete(u);
+      if (u.dist === Infinity) break;
+      enlaces[u.k].forEach(({ n, costo }) => {
+        if (u.dist + costo < n.dist) { n.dist = u.dist + costo; n.sig = u; }
+      });
+    }
+    return { porTramo, salida, escala };
+  }
+
+  function rutaActual() {
+    if (rutaDe !== C.mina) { ruta = calcularRuta(C.mina); rutaDe = C.mina; }
+    return ruta;
+  }
+
+  // Mueve al minero hacia la salida. Devuelve true cuando llegó a la boca de la mina.
+  function avanzarHaciaSalida(m, metros) {
+    const r = rutaActual();
+    let resto = metros;
+    for (let vueltas = 0; vueltas < 50 && resto > 0; vueltas++) {
+      const t = C.mina.tramos.find((x) => x.id === m.zona);
+      if (!t) return true;
+      const largo = C.longitud(t, r.escala) || 1;
+      // Punto de este tramo por donde conviene seguir hacia la salida.
+      let meta = null;
+      let mejor = Infinity;
+      (r.porTramo[t.id] || []).forEach((n) => {
+        const total = Math.abs(n.p - m.pos) * largo + n.dist;
+        if (total < mejor) { mejor = total; meta = n; }
+      });
+      if (!meta) return null; // tramo sin conexión con la salida
+      if (Math.abs(meta.p - m.pos) < 1e-6) {
+        if (meta === r.salida || !meta.sig) return true;
+        const s = meta.sig;
+        if (s.t !== t.id) { m.zona = s.t; m.pos = s.p; continue; } // pasa al tramo vecino
+        meta = s;
+      }
+      const d = Math.abs(meta.p - m.pos) * largo;
+      if (d <= resto) { m.pos = meta.p; resto -= d; } else { m.pos += Math.sign(meta.p - m.pos) * (resto / largo); resto = 0; }
+    }
+    return false;
+  }
+
   // Revisa que todos los que están dentro tengan una zona válida de la mina actual.
   function normalizar() {
     datos.mineros.forEach((m) => {
@@ -208,16 +316,15 @@
           anotar('evacuacion', m, `Evacuación de ${C.zona(m.zona).nombre}`);
         }
         if (m.evacuando) {
-          if (m.zona !== salida) {
-            m.pos -= 0.25;
-            if (m.pos <= 0) { m.zona = salida; m.pos = 0.9; }
-          } else {
-            m.pos -= 0.3;
-            if (m.pos <= 0.05) {
-              m.dentro = false; m.evacuando = false;
-              anotar('salida', m, 'Salió de la mina por evacuación');
-              m.zona = null; m.ingreso = null;
-            }
+          let llego = avanzarHaciaSalida(m, METROS_POR_LECTURA);
+          if (llego === null) {
+            // Tramo dibujado sin conexión con la bocamina: se lleva a la bocamina como antes.
+            m.zona = salida; m.pos = 0.5; llego = false;
+          }
+          if (llego) {
+            m.dentro = false; m.evacuando = false;
+            anotar('salida', m, 'Salió de la mina por evacuación');
+            m.zona = null; m.ingreso = null;
           }
           return;
         }
