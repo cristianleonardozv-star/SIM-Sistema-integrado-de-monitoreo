@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Historial | Canario Digital</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 34'%3E%3Ccircle cx='17' cy='17' r='16' fill='%23F2C230'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+<header class="barra">
+  <a class="marca" href="index.html">
+    <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="16" fill="#F2C230"/><path d="M10 19c2-6 8-8 13-5l4-1-3 3c0 5-4 8-9 8-3 0-5-2-5-5z" fill="#23272B"/><circle cx="21" cy="15" r="1.3" fill="#F2C230"/></svg>
+    <span class="marca-texto"><strong>Canario Digital</strong><span>Sala de control de superficie</span></span>
+  </a>
+  <nav class="nav" aria-label="Secciones">
+    <a href="index.html">Monitoreo</a>
+    <a href="alerta.html">Alertas <span id="badge-alertas" class="badge" hidden>0</span></a>
+    <a href="historial.html" aria-current="page">Historial</a>
+    <a href="editor.html">Diseñar mina</a>
+  </nav>
+  <div class="estado-sistema">
+    <div><span>Hora</span><strong id="reloj" class="cifra">--:--:--</strong></div>
+    <div><span>Estaciones en línea</span><strong id="estaciones">--</strong></div>
+    <button type="button" id="btn-avisos" class="btn-avisos" aria-pressed="false">Silenciar</button>
+    <span class="chip-sim">Datos simulados</span>
+  </div>
+</header>
+
+<main>
+  <div class="cabecera-panel" style="align-items:flex-end">
+    <div style="display:flex;flex-direction:column">
+      <h1 style="margin:0;font-family:var(--fuente-cifra);font-size:32px;font-weight:700">Historial de mediciones</h1>
+      <p class="nota" style="font-size:15px">Cada lectura queda guardada y no se edita ni se borra. Las correcciones se registran como entradas nuevas.</p>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button type="button" id="exp-lecturas" class="boton boton-principal">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+        Exportar lecturas (CSV)
+      </button>
+      <button type="button" id="exp-eventos" class="boton boton-secundario">Exportar eventos para la ANM (CSV)</button>
+    </div>
+  </div>
+
+  <form class="panel filtros" aria-label="Filtros" onsubmit="return false">
+    <label class="campo">Zona<select id="f-zona"></select></label>
+    <label class="campo">Variable<select id="f-variable"></select></label>
+    <label class="campo">Periodo
+      <select id="f-periodo">
+        <option value="15">Últimos 15 minutos</option>
+        <option value="60">Última hora</option>
+        <option value="120" selected>Últimas 2 horas</option>
+        <option value="0">Todo lo guardado</option>
+      </select>
+    </label>
+  </form>
+
+  <section class="panel" aria-labelledby="graf-t">
+    <div class="cabecera-panel">
+      <h2 id="graf-t">--</h2>
+      <span id="graf-resumen" class="nota"></span>
+    </div>
+    <div style="position:relative;height:320px">
+      <canvas id="grafica" role="img" aria-label="Gráfica de la variable seleccionada en el periodo elegido"></canvas>
+    </div>
+    <p class="nota">Las franjas de color marcan los niveles: amarillo Precaución, rojo claro Peligro y rojo intenso Evacuación.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="ev-t">
+    <h2 id="ev-t">Eventos registrados</h2>
+    <div class="desplazable">
+      <table class="tabla tabla-eventos">
+        <thead>
+          <tr>
+            <th scope="col">Inicio</th><th scope="col">Zona</th><th scope="col">Nivel máximo</th><th scope="col">Causa</th>
+            <th scope="col">Duración</th><th scope="col">Confirmó</th><th scope="col">Acción</th><th scope="col">Detalle</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-eventos"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="lim-t">
+    <h2 id="lim-t">Tabla de límites usada</h2>
+    <p class="nota">Los límites se cambian en <code>js/datos.js</code>, sin tocar el resto del código. Los marcados para verificar deben confirmarse con el texto oficial de los decretos.</p>
+    <div class="desplazable">
+      <table class="tabla" style="min-width:720px">
+        <thead><tr><th scope="col">Variable</th><th scope="col">Umbrales</th><th scope="col">Referencia</th></tr></thead>
+        <tbody id="tabla-limites"></tbody>
+      </table>
+    </div>
+    <div><button type="button" id="reiniciar" class="boton boton-secundario">Reiniciar los datos de la demo</button></div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="js/datos.js"></script>
+<script src="js/mina.js"></script>
+<script src="js/almacen.js"></script>
+<script src="js/motor.js"></script>
+<script src="js/simulador.js"></script>
+<script src="js/avisos.js"></script>
+<script src="js/pagina-historial.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

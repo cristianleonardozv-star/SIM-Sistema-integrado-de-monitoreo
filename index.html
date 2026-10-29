@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sala de control | Canario Digital</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 34'%3E%3Ccircle cx='17' cy='17' r='16' fill='%23F2C230'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+<header class="barra">
+  <a class="marca" href="index.html">
+    <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="16" fill="#F2C230"/><path d="M10 19c2-6 8-8 13-5l4-1-3 3c0 5-4 8-9 8-3 0-5-2-5-5z" fill="#23272B"/><circle cx="21" cy="15" r="1.3" fill="#F2C230"/></svg>
+    <span class="marca-texto"><strong>Canario Digital</strong><span>Sala de control de superficie</span></span>
+  </a>
+  <nav class="nav" aria-label="Secciones">
+    <a href="index.html" aria-current="page">Monitoreo</a>
+    <a href="alerta.html">Alertas <span id="badge-alertas" class="badge" hidden>0</span></a>
+    <a href="historial.html">Historial</a>
+    <a href="editor.html">Diseñar mina</a>
+  </nav>
+  <div class="estado-sistema">
+    <div><span>Hora</span><strong id="reloj" class="cifra">--:--:--</strong></div>
+    <div><span>Estaciones en línea</span><strong id="estaciones">--</strong></div>
+    <div><span>Enlace de fibra</span><strong>Activo</strong></div>
+    <button type="button" id="btn-avisos" class="btn-avisos" aria-pressed="false">Silenciar</button>
+    <span class="chip-sim">Datos simulados</span>
+  </div>
+</header>
+
+<section id="banner" class="banner" aria-live="polite" hidden></section>
+
+<main>
+  <div class="fila" style="align-items:flex-start">
+    <section class="panel ancho" aria-labelledby="mapa-t">
+      <div class="cabecera-panel">
+        <h1 id="mapa-t">Corte de la mina</h1>
+        <ul class="leyenda" aria-label="Leyenda de niveles">
+          <li><span class="muestra" style="background:#8A8F94"></span>Normal</li>
+          <li><span class="muestra" style="background:#F2C230"></span>Precaución</li>
+          <li><span class="muestra" style="background:#C4291C"></span>Peligro</li>
+          <li><span class="muestra muestra-evacuacion"></span>Evacuación (intermitente)</li>
+          <li><span class="muestra" style="background:#4B4FB8"></span>Falla técnica</li>
+        </ul>
+      </div>
+      <svg id="mapa" class="mapa" viewBox="0 0 900 490" role="img" aria-labelledby="mapa-desc">
+        <desc id="mapa-desc">Corte de la mina con sus tramos, estaciones fijas y cuadrillas. Cada zona se colorea según su nivel de alerta.</desc>
+      </svg>
+      <p class="nota">Los niveles avanzan de Normal a Precaución, Peligro y Evacuación. En Evacuación el metano llegó a 1,0 % o más: el PLC corta la energía y la zona debe desocuparse. <a href="editor.html">Cambiar el diseño de la mina</a></p>
+    </section>
+
+    <aside class="panel angosto" aria-labelledby="det-nombre" id="detalle">
+      <div class="cabecera-zona">
+        <div style="display:flex;flex-direction:column">
+          <span class="rotulo">Zona seleccionada</span>
+          <h2 id="det-nombre">--</h2>
+        </div>
+        <span id="det-nivel" class="pildora grande nivel-normal">Normal</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="metano"><span style="font-weight:600">Metano (CH₄)</span><strong id="det-ch4">--</strong></div>
+        <div id="det-chispa"></div>
+        <div class="escala"><span>Últimos 30 min</span><span>Precaución desde 0,5 %, peligro desde 0,8 %, evacuación en 1,0 %</span></div>
+      </div>
+      <p id="det-causas" class="causas fila-peligro" hidden></p>
+      <table class="tabla tabla-variables">
+        <caption>Otras variables de la zona</caption>
+        <tbody id="det-variables"></tbody>
+      </table>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <h3>Lo que hizo el PLC</h3>
+        <ul id="det-plc" class="rejilla-plc"></ul>
+      </div>
+      <div id="det-cuadrilla" class="cuadrilla"></div>
+    </aside>
+  </div>
+
+  <section class="panel" aria-labelledby="zonas-t">
+    <h2 id="zonas-t">Estado por zona</h2>
+    <div class="desplazable">
+      <table class="tabla tabla-zonas">
+        <thead>
+          <tr>
+            <th scope="col">Zona</th><th scope="col">Nivel</th><th scope="col" class="num">CH₄</th><th scope="col" class="num">O₂</th>
+            <th scope="col" class="num">CO</th><th scope="col" class="num">Polvo</th><th scope="col" class="num">Estaciones</th><th scope="col" class="num">Personas</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-zonas"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <details class="panel simulacion" open>
+    <summary>Panel de simulación para la demo</summary>
+    <p class="nota">Elige una zona y provoca una situación de riesgo. Las lecturas cambian poco a poco cada 5 segundos, como lo harían en la mina. Pulsa de nuevo un escenario para apagarlo.</p>
+    <div class="filtros" style="display:flex;margin-top:12px">
+      <label class="campo" style="flex:0 1 360px">Zona<select id="sim-zona"></select></label>
+    </div>
+    <div id="botones-sim" class="botones-sim"></div>
+    <p id="sim-activos" class="nota" style="margin-top:12px"></p>
+  </details>
+</main>
+
+<script src="js/datos.js"></script>
+<script src="js/mina.js"></script>
+<script src="js/almacen.js"></script>
+<script src="js/motor.js"></script>
+<script src="js/simulador.js"></script>
+<script src="js/mapa.js"></script>
+<script src="js/avisos.js"></script>
+<script src="js/pagina-control.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
